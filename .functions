@@ -1,0 +1,351 @@
+# Simple calculator
+function calc() {
+  local result=""
+  result="$(printf "scale=10;$*\n" | bc --mathlib | tr -d '\\\n')"
+  #                       └─ default (when `--mathlib` is used) is 20
+  #
+  if [[ "$result" == *.* ]]; then
+    # improve the output for decimal numbers
+    printf "$result" |
+    sed -e 's/^\./0./'        `# add "0" for cases like ".5"` \
+        -e 's/^-\./-0./'      `# add "0" for cases like "-.5"`\
+        -e 's/0*$//;s/\.$//'   # remove trailing zeros
+  else
+    printf "$result"
+  fi
+  printf "\n"
+}
+
+# Create a new directory and enter it
+function mkd() {
+  mkdir -p "$@" && cd "$@"
+}
+
+function clone() {
+  git clone $1 $2
+}
+
+# Change working directory to the top-most Finder window location
+function cdf() { # short for `cdfinder`
+  cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')"
+}
+
+# Create a .tar.gz archive, using `zopfli`, `pigz` or `gzip` for compression
+function targz() {
+  local tmpFile="${@%/}.tar"
+  tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1
+
+  size=$(
+    stat -f"%z" "${tmpFile}" 2> /dev/null; # OS X `stat`
+    stat -c"%s" "${tmpFile}" 2> /dev/null # GNU `stat`
+  )
+
+  local cmd=""
+  if (( size < 52428800 )) && hash zopfli 2> /dev/null; then
+    # the .tar file is smaller than 50 MB and Zopfli is available; use it
+    cmd="zopfli"
+  else
+    if hash pigz 2> /dev/null; then
+      cmd="pigz"
+    else
+      cmd="gzip"
+    fi
+  fi
+
+  echo "Compressing .tar using \`${cmd}\`…"
+  "${cmd}" -v "${tmpFile}" || return 1
+  [ -f "${tmpFile}" ] && rm "${tmpFile}"
+  echo "${tmpFile}.gz created successfully."
+}
+
+# Determine size of a file or total size of a directory
+function fs() {
+  if du -b /dev/null > /dev/null 2>&1; then
+    local arg=-sbh
+  else
+    local arg=-sh
+  fi
+  if [[ -n "$@" ]]; then
+    du $arg -- "$@"
+  else
+    du $arg .[^.]* *
+  fi
+}
+
+# Use Git’s colored diff when available
+hash git &>/dev/null
+if [ $? -eq 0 ]; then
+  function diff() {
+    git diff --no-index --color-words "$@"
+  }
+fi
+
+# Create a data URL from a file
+function dataurl() {
+  local mimeType=$(file -b --mime-type "$1")
+  if [[ $mimeType == text/* ]]; then
+    mimeType="${mimeType};charset=utf-8"
+  fi
+  echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')"
+}
+
+# Create a data URL from a file and copy it to the clipboard
+function dataurlc() {
+  dataurl $1 | pbcopy
+}
+
+# Create a git.io short URL
+function gitio() {
+  if [ -z "${1}" -o -z "${2}" ]; then
+    echo "Usage: \`gitio slug url\`"
+    return 1
+  fi
+  curl -i http://git.io/ -F "url=${2}" -F "code=${1}"
+}
+
+# Start an HTTP server from a directory, optionally specifying the port
+function server() {
+  sleep 1 && open "http://localhost:8080/" &
+  python -m SimpleHTTPServer 8080
+}
+
+# Start a PHP server from a directory, optionally specifying the port
+# (Requires PHP 5.4.0+.)
+function phpserver() {
+  local port=$1 #"8081"
+  if [[ $port == "" ]]; then
+    port="8081"
+  fi
+  local ip=$"0.0.0.0"
+  sleep 1 && open "http://${ip}:${port}/" &
+  php -S "${ip}:${port}"
+}
+
+# Compare original and gzipped file size
+function gz() {
+  local origsize=$(wc -c < "$1")
+  local gzipsize=$(gzip -c "$1" | wc -c)
+  local ratio=$(echo "$gzipsize * 100/ $origsize" | bc -l)
+  printf "orig: %d bytes\n" "$origsize"
+  printf "gzip: %d bytes (%2.2f%%)\n" "$gzipsize" "$ratio"
+}
+
+# Syntax-highlight JSON strings or files
+# Usage: `json '{"foo":42}'` or `echo '{"foo":42}' | json`
+function json() {
+  if [ -t 0 ]; then # argument
+    python -mjson.tool <<< "$*" | pygmentize -l javascript
+  else # pipe
+    python -mjson.tool | pygmentize -l javascript
+  fi
+}
+
+# All the dig info
+function digga() {
+  dig +nocmd "$1" any +multiline +noall +answer
+}
+
+# Escape UTF-8 characters into their 3-byte format
+function escape() {
+  printf "\\\x%s" $(printf "$@" | xxd -p -c1 -u)
+  # print a newline unless we’re piping the output to another program
+  if [ -t 1 ]; then
+    echo # newline
+  fi
+}
+
+# Decode \x{ABCD}-style Unicode escape sequences
+function unidecode() {
+  perl -e "binmode(STDOUT, ':utf8'); print \"$@\""
+  # print a newline unless we’re piping the output to another program
+  if [ -t 1 ]; then
+    echo # newline
+  fi
+}
+
+# Get a character’s Unicode code point
+function codepoint() {
+  perl -e "use utf8; print sprintf('U+%04X', ord(\"$@\"))"
+  # print a newline unless we’re piping the output to another program
+  if [ -t 1 ]; then
+    echo # newline
+  fi
+}
+
+# Show all the names (CNs and SANs) listed in the SSL certificate
+# for a given domain
+function getcertnames() {
+  if [ -z "${1}" ]; then
+    echo "ERROR: No domain specified."
+    return 1
+  fi
+
+  local domain="${1}"
+  echo "Testing ${domain}…"
+  echo # newline
+
+  local tmp=$(echo -e "GET / HTTP/1.0\nEOT" \
+    | openssl s_client -connect "${domain}:443" 2>&1);
+
+  if [[ "${tmp}" = *"-----BEGIN CERTIFICATE-----"* ]]; then
+    local certText=$(echo "${tmp}" \
+      | openssl x509 -text -certopt "no_header, no_serial, no_version, \
+      no_signame, no_validity, no_issuer, no_pubkey, no_sigdump, no_aux");
+      echo "Common Name:"
+      echo # newline
+      echo "${certText}" | grep "Subject:" | sed -e "s/^.*CN=//";
+      echo # newline
+      echo "Subject Alternative Name(s):"
+      echo # newline
+      echo "${certText}" | grep -A 1 "Subject Alternative Name:" \
+        | sed -e "2s/DNS://g" -e "s/ //g" | tr "," "\n" | tail -n +2
+      return 0
+  else
+    echo "ERROR: Certificate not found.";
+    return 1
+  fi
+}
+
+# Install Grunt plugins and add them as `devDependencies` to `package.json`
+# Usage: `gi contrib-watch contrib-uglify zopfli`
+function gi() {
+  local IFS=,
+  eval npm install --save-dev grunt-{"$*"}
+}
+
+# `v` with no arguments opens the current directory in Vim, otherwise opens the
+# given location
+function v() {
+  if [ $# -eq 0 ]; then
+    vim .
+  else
+    vim "$@"
+  fi
+}
+
+# `o` with no arguments opens current directory, otherwise opens the given
+# location
+function o() {
+  if [ $# -eq 0 ]; then
+  open .
+  else
+    open "$@"
+  fi
+}
+
+function hr {
+  word="$1"
+  if [ ! $word ]; then
+    word="-"
+  fi
+  line=''
+  columns="$(tput cols)"
+  while [[ ${#line} -lt $columns ]]; do
+    line="$line$word"
+  done
+  echo "$GREEN${line:0:$columns}$RESET"
+}
+
+# This beloved script is a much-hacked version of the example at https://raw.githubusercontent.com/gnachman/iTerm2/master/tests/imgcat.
+# It uses Quick Look and iTerm nightlies to display arbitrary files inline in the terminal
+#
+# To use, source this file and:
+#    run "preview file1 file2 ..." for inline previews
+#    run "ppreview file1 file2 ..." for popout previews
+# print_image filename inline base64contents
+#   filename: Filename to convey to client
+#   inline: 0 or 1
+#   base64contents: Base64-encoded contents
+function print_image() {
+    printf '\033]1337;File='
+    if [[ -n "$1" ]]; then
+      printf 'name='`echo -n "$1" | base64`";"
+    fi
+    if $(base64 --version | grep GNU > /dev/null)
+    then
+      BASE64ARG=-d
+    else
+      BASE64ARG=-D
+    fi
+    echo -n "$3" | base64 $BASE64ARG | wc -c | awk '{printf "size=%d",$1}'
+    printf ";inline=$2"
+    printf ":"
+    echo -n "$3"
+    printf '\a\n'
+}
+
+
+function preview() {
+  for file in "$@"
+  do
+    if [ -r "$file" ] ; then
+      preview_dir="/tmp"
+      thumbnail_size=600
+
+      qlmanage -t -s $thumbnail_size -o "$preview_dir" "$file" 1>/dev/null 2>/dev/null
+
+      thumbnail=$preview_dir/$(basename "$file").png
+
+      echo $file
+      print_image "$thumbnail" 1 "$(base64 < "$thumbnail")"
+    else
+      echo "preview: $file: No such file or directory"
+    fi
+  done
+}
+
+function ppreview() {
+  for file in "$@"
+  do
+    if [ -r "$file" ] ; then
+      qlmanage -p "$file" 1>/dev/null 2>/dev/null &
+    else
+      echo "preview: $file: No such file or directory"
+    fi
+  done
+}
+
+# `tre` is a shorthand for `tree` with hidden files and color enabled, ignoring
+# the `.git` directory, listing directories first. The output gets piped into
+# `less` with options to preserve color and line numbers, unless the output is
+# small enough for one screen.
+function tre() {
+  tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
+}
+
+function gt() {
+  git log --all --graph --pretty=format:'%Cred%h%Creset -%C(auto)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+}
+
+function hl() {
+  highlight -O rtf -s rdark $1 | pbcopy
+}
+
+function rsw() {
+  rm ~/.vim/swaps/*
+}
+
+function icat() {
+  ccat $1 | less -R
+}
+
+function ghcontrib() {
+  repo=$(basename $(pwd))
+  githubcontrib --owner mgechev --repo $repo --cols 6 --showlogin true --filter gitter-badger --sortOrder desc | pbcopy
+}
+
+function tunnel() {
+  echo "Starting an ssh tunnel. Public address: https://mgv.io:$1"
+  ssh -i ~/.ssh/id_rsa -N -R *:$1:localhost:$1 minko@mgv.io
+}
+
+function s() {
+  res=$(curl --silent -X GET "https://mgv.io/api/v2/action/shorten?key=$SHORTENER_TOKEN&url=$1&custom_ending=$2&is_secret=false")
+  if [[ $res == https* ]];
+  then 
+    echo $res | pbcopy
+  else
+    echo $res
+  fi
+}
+
