@@ -206,13 +206,6 @@ function getcertnames() {
   fi
 }
 
-# Install Grunt plugins and add them as `devDependencies` to `package.json`
-# Usage: `gi contrib-watch contrib-uglify zopfli`
-function gi() {
-  local IFS=,
-  eval npm install --save-dev grunt-{"$*"}
-}
-
 # `v` with no arguments opens the current directory in Vim, otherwise opens the
 # given location
 function v() {
