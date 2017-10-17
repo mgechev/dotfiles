@@ -206,6 +206,13 @@ function getcertnames() {
   fi
 }
 
+# Install Grunt plugins and add them as `devDependencies` to `package.json`
+# Usage: `gi contrib-watch contrib-uglify zopfli`
+function gi() {
+  local IFS=,
+  eval npm install --save-dev grunt-{"$*"}
+}
+
 # `v` with no arguments opens the current directory in Vim, otherwise opens the
 # given location
 function v() {
@@ -340,5 +347,13 @@ function s() {
   else
     echo $res
   fi
+}
+
+function changeMac() {
+  local mac=$(openssl rand -hex 6 | sed 's/\(..\)/\1:/g; s/.$//')
+  sudo ifconfig en0 ether $mac
+  sudo ifconfig en0 down
+  sudo ifconfig en0 up
+  echo "Your new physical address is $mac"
 }
 
