@@ -37,6 +37,23 @@ var throwNextFullscreen = slate.operation("throw", {
   "screen": "next"
 });
 
+var throwNextTop = slate.operation("throw", {
+  "x": "screenOriginX",
+  "y": "screenOriginY",
+  "width": "screenSizeX",
+  "height": "screenSizeY/2",
+  "screen": "next"
+});
+
+var throwNextBottom = slate.operation("throw", {
+  "x": "screenOriginX",
+  "y": "screenOriginY + screenSizeY / 2",
+  "width": "screenSizeX",
+  "height": "screenSizeY/2",
+  "screen": "next"
+});
+
+
 var throwNext = function(win) {
   if (!win) {
     return;
@@ -106,7 +123,7 @@ var isFullscreen = function(win) {
   return false;
 }
 
-slate.bind("m:ctrl,alt,cmd", function(win) {
+slate.bind("m:alt,cmd", function(win) {
   if (!win) {
     return;
   }
@@ -114,7 +131,7 @@ slate.bind("m:ctrl,alt,cmd", function(win) {
 });
 
 
-slate.bind("left:ctrl,alt,cmd", function(win) {
+slate.bind("left:alt,cmd", function(win) {
   if (!win) {
     return;
   }
@@ -125,7 +142,7 @@ slate.bind("left:ctrl,alt,cmd", function(win) {
   }
 });
 
-slate.bind("right:ctrl,alt,cmd", function(win) {
+slate.bind("right:alt,cmd", function(win) {
   if (!win) {
     return;
   }
@@ -137,30 +154,18 @@ slate.bind("right:ctrl,alt,cmd", function(win) {
   }
 });
 
-slate.bind("up:ctrl,alt,cmd", function(win) {
+slate.bind("up:alt,cmd", function(win) {
   if (!win) {
     return;
   }
 
-  if (isFullscreen(win)) {
-    win.doOperation(throwNextFullscreen);
-  } else {
-    win.doOperation(fullscreen);
-  }
+  win.doOperation(throwNextTop);
 });
 
-slate.bind("down:ctrl,alt,cmd", function(win) {
+slate.bind("down:alt,cmd", function(win) {
   if (!win) {
     return;
   }
 
-  if (pushedLeft(win)) {
-    win.doOperation(throwNextLeft);
-  } else if (pushedRight(win)) {
-    win.doOperation(throwNextRight);
-  } else if (isFullscreen(win)) {
-    win.doOperation(throwNextFullscreen);
-  } else {
-    throwNext(win);
-  }
+  win.doOperation(throwNextBottom);
 });
