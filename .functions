@@ -357,3 +357,27 @@ function changeMac() {
   echo "Your new physical address is $mac"
 }
 
+function rhyme() {
+  local SESSION='rhyme'
+  tmux has-session -t $SESSION &> /dev/null
+
+  if [ $? != 0 ]; then
+    tmux new -s $SESSION -d
+    tmux send-keys -t $SESSION 'cd ~/Projects/golang/src/github.com/SuperLinearity/rhyme-app/be && code . && cd ../fe && code .' C-m
+    tmux split-window -t $SESSION
+    tmux send-keys -t $SESSION 'cd ~/Projects/golang/src/github.com/SuperLinearity/rhyme-app/be' C-m
+    tmux send-keys -t $SESSION 'make app.server' C-m
+    tmux split-window -h -t $SESSION
+    tmux send-keys -t $SESSION 'cd ~/Projects/golang/src/github.com/SuperLinearity/rhyme-app/fe' C-m
+    tmux send-keys -t $SESSION 'npm start' C-m
+    tmux split-window -h -t $SESSION
+    tmux new-window -t $SESSION
+    tmux select-window -t 1
+    tmux send-keys -t $SESSION 'cd ~/Projects/golang/src/github.com/SuperLinearity/rhyme-app/fe' C-m
+    tmux send-keys -t $SESSION 'gnatsd' C-m
+    tmux select-window -t 0
+  fi
+
+  tmux attach -t $SESSION
+
+}
