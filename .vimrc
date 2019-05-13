@@ -36,6 +36,7 @@ Plug 'junegunn/limelight.vim'
 " Add airline
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'arcticicestudio/nord-vim'
 call plug#end()
 
 inoremap <expr><tab> pumvisible() ? "\<C-n>" : "\<TAB>"
@@ -154,7 +155,7 @@ endif
 " Set stylish as color scheme
 syntax enable
 set background=dark
-colorscheme tomorrow-night
+colorscheme nord
 " Emmet
 let g:user_emmet_install_global = 0
 " Toggle NERDTree
