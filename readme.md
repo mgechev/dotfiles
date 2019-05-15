@@ -1,6 +1,6 @@
 # Dotfiles
 
-This repository contains my BASH dotfiles.
+This repository contains some of my config files:
 
 - `.bash_prompt` - my minimalistic BASH prompt.
 - `.functions` - helpful utilities, for instance link shortener, SSH tunnel, etc.
@@ -10,7 +10,7 @@ This repository contains my BASH dotfiles.
 
 Others are mostly self descriptive.
 
-# License
+## License
 
 MIT
 
