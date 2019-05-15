@@ -35,7 +35,9 @@ Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 " Add airline
 Plug 'vim-airline/vim-airline'
+" Add airline theme
 Plug 'vim-airline/vim-airline-themes'
+" Add Nord theme for vim
 Plug 'arcticicestudio/nord-vim'
 call plug#end()
 
