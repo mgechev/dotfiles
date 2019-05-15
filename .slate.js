@@ -169,3 +169,4 @@ slate.bind("down:alt,cmd", function(win) {
 
   win.doOperation(throwNextBottom);
 });
+
