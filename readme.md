@@ -10,6 +10,20 @@ This repository contains some of my config files:
 
 Others are mostly self descriptive.
 
+## Screenshots
+
+**prompt**
+
+![Prompt](https://blog.mgechev.com/images/dotfiles/prompt.png)
+
+**vim**
+
+![vim](https://blog.mgechev.com/images/dotfiles/vim.png)
+
+**tmux**
+
+![tmux](https://blog.mgechev.com/images/dotfiles/tmux.png)
+
 ## License
 
 MIT
