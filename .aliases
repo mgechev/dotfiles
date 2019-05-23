@@ -15,6 +15,7 @@ alias g="git"
 alias gc="git commit -am"
 alias gp="git push origin"
 alias h="history"
+alias vim="reattach-to-user-namespace vim"
 # alias j="jobs"
 
 # Detect which `ls` flavor is in use
@@ -149,5 +150,5 @@ alias poweroff="sudo shutdown -h now"
 alias tmux='tmux -2'
 
 # Syntax highlighting
-alias ccat='pygmentize -g'
+alias ccat='pygmentize -f terminal256 -O style=native -g'
 
