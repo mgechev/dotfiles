@@ -13,8 +13,6 @@ Plug 'mgechev/vim-jsx'
 Plug 'tpope/vim-surround'
 " Add NERDTree
 Plug 'scrooloose/nerdtree'
-" Add MatchTagAlways
-Plug 'valloric/MatchTagAlways'
 " Add coffeescript syntax
 Plug 'kchmck/vim-coffee-script'
 " Add awesome color scheme
