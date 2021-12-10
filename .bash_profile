@@ -120,9 +120,6 @@ if [ -f ~/.tnsrc ]; then
 fi
 ###-tns-completion-end-###
 
-# Load direnv
-eval "$(direnv hook bash)"
-
 # PATH
 export PATH='~/.rvm/gems/ruby-1.9.2-p320/bin:~/.rvm/gems/ruby-1.9.2-p320@global/bin:~/.rvm/rubies/ruby-1.9.2-p320/bin:~/.rvm/bin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/Applications/apache-ant-1.9.2/bin/:~/Development/android/sdk/tools/:~/Development/android/sdk/platform-tools/'
 export PATH=${PATH}:/Development/android-sdk-macosx/platform-tools:/Development/android-sdk-macosx/tools:/Users/mgechev/Development/wabt/out/clang/Debug:$HOME/Library/Haskell/bin
@@ -137,7 +134,7 @@ export PATH="$PATH:/usr/local/git/bin:$HOME/.golang/bin"
 export PATH="$PATH:$DART_SDK/bin"
 export PATH="$PATH:/usr/local/git/bin:/usr/local/bin:/usr/local/sbin:/usr/texbin:/usr/local/heroku/bin:~/bin:/bin:/opt/local/bin:/opt/local/sbin:~/.rvm/gems/ruby-2.0.0-p576/bin:~/.rvm/gems/ruby-2.0.0-p576@global/bin:~/.rvm/rubies/ruby-2.0.0-p576/bin:~/.rvm/bin:~/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/Applications/apache-ant-1.9.2/bin:~/Development/android/sdk/tools:~/Development/android/sdk/platform-tools/:/Development/android-sdk-macosx/platform-tools:/Development/android-sdk-macosx/tools:/usr/local/git/bin:~/.rvm/bin:/usr/local/git/bin:/usr/local/opt/dart/libexec/bin:/Applications/Julia-0.6.app/Contents/Resources/julia/bin"
 export PATH="$HOME/.node/bin:$PATH"
-export PATH="$PATH:$HOME/.npm-packages/bin";
+export PATH="$PATH:$HOME/.npm-packages/bin:/opt/homebrew/bin";
 
 export ANDROID_HOME=~/Development/android/sdk
 export TERMINFO="$HOME/.terminfo"
@@ -148,4 +145,12 @@ export DART_SDK="/usr/local/opt/dart/libexec"
 export ANDROID_HOME="/usr/local/Cellar/android-sdk/24.4/"
 export LESS='-R'
 export LESSOPEN='|~/.lessfilter %s'
+
+# Load direnv
+eval "$(direnv hook bash)"
+
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Remove the bash deprecation warning
+export BASH_SILENCE_DEPRECATION_WARNING=1
 
