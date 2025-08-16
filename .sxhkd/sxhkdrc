@@ -1,0 +1,18 @@
+# ~/.config/sxhkd/sxhkdrc
+
+# Window tiling shortcuts
+alt + Left
+    ~/.config/sxhkd/scripts/move-left.sh
+
+alt + Right
+    ~/.config/sxhkd/scripts/move-right.sh
+
+alt + Up
+    ~/.config/sxhkd/scripts/move-top.sh
+
+alt + Down
+    ~/.config/sxhkd/scripts/move-bottom.sh
+
+# Fullscreen toggle
+alt + m
+    ~/.config/sxhkd/scripts/toggle-fullscreen.sh
